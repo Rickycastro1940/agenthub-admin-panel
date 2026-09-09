@@ -3,136 +3,705 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Simple Dashboard</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <style type="text/tailwindcss">
-      @theme {
-        --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
-        --color-ink: #0f172a;
-        --color-muted: #64748b;
-        --color-surface: #f8fafc;
-        --color-brand: #0f766e;
-        --color-brand-soft: #ccfbf1;
-      }
-    </style>
+    <title>AgentHub Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["Inter", "system-ui", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
   </head>
-  <body class="min-h-screen bg-surface font-sans text-ink">
-    <div class="min-h-screen lg:grid lg:grid-cols-[16rem_1fr]">
-      <aside class="hidden border-r border-slate-200 bg-white lg:flex lg:flex-col">
-        <div class="border-b border-slate-200 px-6 py-5">
-          <p class="text-lg font-semibold tracking-tight">Northwind Ops</p>
-          <p class="text-sm text-muted">Operations dashboard</p>
-        </div>
-        <nav class="flex flex-1 flex-col gap-1 p-4 text-sm">
-          <a class="rounded-lg bg-brand-soft px-3 py-2 font-medium text-brand" href="#">Overview</a>
-          <a class="rounded-lg px-3 py-2 text-slate-600 hover:bg-slate-50" href="#">Orders</a>
-          <a class="rounded-lg px-3 py-2 text-slate-600 hover:bg-slate-50" href="#">Customers</a>
-          <a class="rounded-lg px-3 py-2 text-slate-600 hover:bg-slate-50" href="#">Inventory</a>
-          <a class="rounded-lg px-3 py-2 text-slate-600 hover:bg-slate-50" href="#">Reports</a>
-        </nav>
-        <div class="border-t border-slate-200 p-4 text-sm text-muted">Signed in as Alex Chen</div>
-      </aside>
+  <body class="min-h-screen bg-slate-100 font-sans text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100">
+    <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:m-4 focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:shadow dark:focus:bg-slate-800">Skip to content</a>
+    <div id="app"></div>
+    <script>
+      const ROUTES = [
+        { id: "dashboard", label: "Dashboard", hash: "#dashboard" },
+        { id: "users", label: "User Management", hash: "#users" },
+        { id: "agents", label: "Agent Management", hash: "#agents" },
+        { id: "skills", label: "Skills", hash: "#skills" },
+        { id: "contracts", label: "Agent Contracts", hash: "#contracts" },
+        { id: "errors", label: "Error Log", hash: "#errors" },
+      ];
 
-      <div class="flex min-h-screen flex-col">
-        <header class="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-4 sm:px-8">
-          <div>
-            <h1 class="text-xl font-semibold tracking-tight">Overview</h1>
-            <p class="text-sm text-muted">Today’s activity across sales and fulfillment</p>
-          </div>
-          <button class="rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white hover:bg-teal-800">
-            Export report
+      const seed = () => ({
+        users: [
+          { id: "u1", name: "Jordan Hale", email: "jordan@acmelabs.io", company: "Acme Labs", plan: "Growth", status: "Active", joined: "Nov 2, 2025", agents: "Nora Finance" },
+          { id: "u2", name: "Priya Shah", email: "priya@northstar.example", company: "Northstar Inc.", plan: "Scale", status: "Active", joined: "Aug 18, 2025", agents: "Atlas Research" },
+          { id: "u3", name: "Luis Romero", email: "luis@harborfreight.example", company: "Harbor Freight Co.", plan: "Starter", status: "Trial", joined: "Jul 12, 2026", agents: "Calendar Concierge" },
+          { id: "u4", name: "Elena Rossi", email: "elena@dealdesk.example", company: "DealDesk LLC", plan: "Growth", status: "Active", joined: "Jan 9, 2026", agents: "DealDesk Copilot" },
+          { id: "u5", name: "Maya Chen", email: "maya@lumenhealth.example", company: "Lumen Health", plan: "Starter", status: "Suspended", joined: "Mar 22, 2026", agents: "—" },
+        ],
+        agents: [
+          { id: "a1", name: "Nora Finance", owner: "Acme Labs", status: "Active", lastRun: "2 hours ago", skills: ["Document Analysis", "Web Research", "Invoice Matching"], prompt: "You are Nora Finance. Reconcile invoices, flag anomalies, and never invent totals.", open: false },
+          { id: "a2", name: "Atlas Research", owner: "Northstar Inc.", status: "Failing", lastRun: "18 minutes ago", skills: ["Web Research", "Document Analysis"], prompt: "You are Atlas Research. Cite sources and refuse unsourced claims.", open: false },
+          { id: "a3", name: "Calendar Concierge", owner: "Harbor Freight Co.", status: "Active", lastRun: "6 hours ago", skills: ["Calendar Management"], prompt: "You are Calendar Concierge. Propose times in the customer’s timezone.", open: false },
+          { id: "a4", name: "DealDesk Copilot", owner: "DealDesk LLC", status: "Paused", lastRun: "1 day ago", skills: ["Document Analysis", "Calendar Management"], prompt: "You are DealDesk Copilot. Draft deal summaries from approved documents only.", open: false },
+        ],
+        skills: [
+          { id: "s1", name: "Web Research", category: "Research", description: "Fetch and summarize public web sources with citations.", scope: "Network: allowlisted domains", version: "2.4.0", updated: "Aug 12, 2026", agents: ["Nora Finance", "Atlas Research"], usage: 72 },
+          { id: "s2", name: "Document Analysis", category: "Documents", description: "Extract tables and clauses from PDFs and contracts.", scope: "Files: customer vault read", version: "3.1.1", updated: "Aug 28, 2026", agents: ["Nora Finance", "Atlas Research", "DealDesk Copilot"], usage: 88 },
+          { id: "s3", name: "Calendar Management", category: "Productivity", description: "Read/write events and propose meeting slots.", scope: "Calendar: read/write", version: "1.8.0", updated: "Jul 30, 2026", agents: ["Calendar Concierge", "DealDesk Copilot"], usage: 41 },
+          { id: "s4", name: "Invoice Matching", category: "Finance", description: "Match invoice line items to purchase orders.", scope: "Finance: invoices read", version: "1.2.0", updated: "Sep 1, 2026", agents: ["Nora Finance"], usage: 54 },
+        ],
+        contracts: [
+          { id: "CNT-2041", client: "Acme Labs", agent: "Nora Finance", status: "Active", start: "Mar 1, 2026", end: "Feb 28, 2027", skills: ["Document Analysis", "Web Research", "Invoice Matching"], base: 2400, items: [{ name: "Document Analysis", price: 420 }, { name: "Web Research", price: 360 }, { name: "Invoice Matching", price: 280 }], discount: 180, paid: 3280 },
+          { id: "CNT-2048", client: "Northstar Inc.", agent: "Atlas Research", status: "Active", start: "Apr 15, 2026", end: "Apr 14, 2027", skills: ["Web Research", "Document Analysis"], base: 2100, items: [{ name: "Web Research", price: 360 }, { name: "Document Analysis", price: 420 }], discount: 0, paid: 2880 },
+          { id: "CNT-2102", client: "Harbor Freight Co.", agent: "Calendar Concierge", status: "Trial", start: "Jul 12, 2026", end: "Aug 11, 2026", skills: ["Calendar Management"], base: 490, items: [{ name: "Calendar Management", price: 190 }], discount: 80, paid: 600 },
+          { id: "CNT-2119", client: "DealDesk LLC", agent: "DealDesk Copilot", status: "Completed", start: "Jan 9, 2026", end: "Jul 8, 2026", skills: ["Document Analysis", "Calendar Management"], base: 1800, items: [{ name: "Document Analysis", price: 420 }, { name: "Calendar Management", price: 190 }], discount: 210, paid: 2200 },
+        ],
+        errors: [
+          { id: "e1", time: "Sep 9, 2026 09:14", agent: "Atlas Research", type: "Critical", description: "Source fetcher aborted after 3 retries", state: "Open", context: "Request GET https://sources.agenthub.example/v1/ingest", trace: "> GET /v1/ingest\n> Retry 1/3 after 1200ms\n> Retry 2/3 after 2400ms\n> Error: AbortError at SourceFetcher.run (ingest.js:88)\n> Agent Atlas Research halted run 19:14Z" },
+          { id: "e2", time: "Sep 9, 2026 08:41", agent: "Nora Finance", type: "Integration", description: "Billing webhook signature rejected", state: "Open", context: "Endpoint /webhooks/stripe for invoice inv_8841", trace: "> POST /webhooks/stripe\n> Header stripe-signature present\n> Error: Signature mismatch (expected t=…,v1=…)\n> at Webhook.verify (billing.js:41)" },
+          { id: "e3", time: "Sep 8, 2026 21:03", agent: "Calendar Concierge", type: "Timeout", description: "Google Calendar list events exceeded 12s", state: "Open", context: "calendar.events.list for harborfreight.example", trace: "> calendar.events.list calendarId=primary\n> Waited 12004ms\n> Error: ETIMEDOUT at TLSSocket (node:net:1157)\n> Skill Calendar Management marked degraded" },
+          { id: "e4", time: "Sep 8, 2026 16:22", agent: "DealDesk Copilot", type: "Permission", description: "Vault read denied for folder legal/nda", state: "Open", context: "Skill Document Analysis, role operator", trace: "> vault.read path=legal/nda\n> Role operator lacks documents:legal\n> Error: Forbidden (403)\n> at Policy.enforce (iam.js:77)" },
+          { id: "e5", time: "Sep 8, 2026 11:05", agent: "Nora Finance", type: "Validation", description: "Invoice total did not match line items", state: "Resolved", context: "Document PO-4419.pdf, expected 12840 got 12804", trace: "> InvoiceMatching.compare PO-4419.pdf\n> Line items sum=12804\n> Header total=12840\n> Error: ValidationError delta=36" },
+          { id: "e6", time: "Sep 7, 2026 19:48", agent: "Atlas Research", type: "Integration", description: "Citation parser received empty HTML", state: "Open", context: "Tool web_research.fetch, url host news.northstar.example", trace: "> fetch https://news.northstar.example/briefing\n> Status 200, body length 0\n> Error: EmptyDocument at CitationParser.parse (research.js:120)" },
+        ],
+      });
+
+      const state = {
+        section: "dashboard",
+        theme: localStorage.getItem("agenthub-theme") === "dark" ? "dark" : "light",
+        menu: null,
+        modal: null,
+        toasts: [],
+        promptDraft: "",
+        ...seed(),
+      };
+
+      const fmt = (n) =>
+        n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+
+      const initials = (name) =>
+        name
+          .split(" ")
+          .map((p) => p[0])
+          .join("")
+          .slice(0, 2);
+
+      const escapeHtml = (value) =>
+        String(value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+
+      const icon = (name) => {
+        const common = 'class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24" aria-hidden="true"';
+        const paths = {
+          dashboard: '<path stroke-linecap="round" stroke-linejoin="round" d="M3 13h8V3H3v10zm10 8h8V3h-8v18zM3 21h8v-6H3v6z" />',
+          users: '<path stroke-linecap="round" stroke-linejoin="round" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zm12 10v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />',
+          agents: '<path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-2 0-3 1.5-3 3v1H8a2 2 0 00-2 2v6h12v-6a2 2 0 00-2-2h-1v-1c0-1.5-1-3-3-3zM9 21h6" />',
+          skills: '<path stroke-linecap="round" stroke-linejoin="round" d="M13 2L3 14h8l-1 8 10-12h-8l1-8z" />',
+          contracts: '<path stroke-linecap="round" stroke-linejoin="round" d="M7 3h8l4 4v14H7V3zm8 0v4h4M9 13h6M9 17h6M9 9h3" />',
+          errors: '<path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.3 4.7L2.8 18a2 2 0 001.7 3h14.9a2 2 0 001.7-3L13.7 4.7a2 2 0 00-3.4 0z" />',
+          sun: '<path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2m0 14v2m9-9h-2M5 12H3m15.4 6.4l-1.4-1.4M8 8L6.6 6.6m10.8 0L16 8M8 16l-1.4 1.4M12 8a4 4 0 100 8 4 4 0 000-8z" />',
+          moon: '<path stroke-linecap="round" stroke-linejoin="round" d="M21 14.5A8.5 8.5 0 1111.5 3 7 7 0 0021 14.5z" />',
+          close: '<path stroke-linecap="round" stroke-linejoin="round" d="M6 6l12 12M18 6L6 18" />',
+          more: '<path stroke-linecap="round" stroke-linejoin="round" d="M12 6h.01M12 12h.01M12 18h.01" />',
+          chevron: '<path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6" />',
+        };
+        return `<svg ${common}>${paths[name] || ""}</svg>`;
+      };
+
+      const badge = (label) => {
+        const map = {
+          Active: "bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200",
+          Trial: "bg-amber-50 text-amber-800 dark:bg-amber-950 dark:text-amber-200",
+          Suspended: "bg-rose-50 text-rose-800 dark:bg-rose-950 dark:text-rose-200",
+          Failing: "bg-rose-50 text-rose-800 dark:bg-rose-950 dark:text-rose-200",
+          Paused: "bg-amber-50 text-amber-800 dark:bg-amber-950 dark:text-amber-200",
+          Completed: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200",
+          Open: "bg-blue-50 text-blue-800 dark:bg-blue-950 dark:text-blue-200",
+          Resolved: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300",
+          Critical: "bg-rose-600 text-white",
+          Integration: "bg-indigo-50 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-200",
+          Timeout: "bg-amber-500 text-white",
+          Permission: "bg-fuchsia-50 text-fuchsia-800 dark:bg-fuchsia-950 dark:text-fuchsia-200",
+          Validation: "bg-sky-50 text-sky-800 dark:bg-sky-950 dark:text-sky-200",
+          Growth: "bg-blue-50 text-blue-800 dark:bg-blue-950 dark:text-blue-200",
+          Scale: "bg-violet-50 text-violet-800 dark:bg-violet-950 dark:text-violet-200",
+          Starter: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200",
+          Research: "bg-blue-50 text-blue-800 dark:bg-blue-950 dark:text-blue-200",
+          Documents: "bg-teal-50 text-teal-800 dark:bg-teal-950 dark:text-teal-200",
+          Productivity: "bg-amber-50 text-amber-800 dark:bg-amber-950 dark:text-amber-200",
+          Finance: "bg-emerald-50 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200",
+        };
+        return `<span class="inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${map[label] || "bg-slate-100 text-slate-700"}">${escapeHtml(label)}</span>`;
+      };
+
+      const toast = (message) => {
+        const id = Date.now() + Math.random();
+        state.toasts.push({ id, message });
+        render();
+        setTimeout(() => {
+          state.toasts = state.toasts.filter((t) => t.id !== id);
+          render();
+        }, 2800);
+      };
+
+      const closeMenu = () => {
+        state.menu = null;
+      };
+
+      const toggleMenu = (id) => {
+        state.menu = state.menu === id ? null : id;
+        render();
+      };
+
+      const openModal = (modal) => {
+        closeMenu();
+        state.modal = modal;
+        if (modal.type === "configure") state.promptDraft = modal.agent.prompt;
+        render();
+        const dialog = document.querySelector("[data-dialog-panel]");
+        if (dialog) dialog.focus();
+      };
+
+      const closeModal = () => {
+        state.modal = null;
+        render();
+      };
+
+      const applyTheme = () => {
+        document.documentElement.classList.toggle("dark", state.theme === "dark");
+        document.body.classList.toggle("dark", state.theme === "dark");
+        localStorage.setItem("agenthub-theme", state.theme);
+      };
+
+      const setSection = (id) => {
+        state.section = id;
+        closeMenu();
+        const route = ROUTES.find((r) => r.id === id);
+        if (route && location.hash !== route.hash) history.replaceState(null, "", route.hash);
+        render();
+      };
+
+      const sectionFromHash = () => {
+        const raw = (location.hash || "#dashboard").replace("#", "");
+        return ROUTES.some((r) => r.id === raw) ? raw : "dashboard";
+      };
+
+      const actionMenu = (id, items) => `
+        <div class="relative">
+          <button type="button" class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:hover:bg-slate-800" aria-haspopup="menu" aria-expanded="${state.menu === id}" aria-label="${escapeHtml(items.aria)}" data-action="menu" data-id="${id}">
+            ${icon("more")}
           </button>
-        </header>
+          ${
+            state.menu === id
+              ? `<div role="menu" class="absolute right-0 z-20 mt-1 w-44 rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-900">
+                  ${items.entries
+                    .map(
+                      (entry) =>
+                        `<button type="button" role="menuitem" class="block w-full px-3 py-2 text-left text-sm ${entry.danger ? "text-rose-600 hover:bg-rose-50 dark:text-rose-300 dark:hover:bg-rose-950" : "text-slate-700 hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-800"} ${entry.disabled ? "cursor-not-allowed opacity-40" : ""}" data-action="${entry.action}" data-id="${entry.id}" ${entry.disabled ? "disabled" : ""}>${escapeHtml(entry.label)}</button>`
+                    )
+                    .join("")}
+                </div>`
+              : ""
+          }
+        </div>`;
 
-        <main class="flex-1 space-y-6 p-4 sm:p-8">
-          <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <p class="text-sm text-muted">Revenue</p>
-              <p class="mt-2 text-2xl font-semibold">$48,290</p>
-              <p class="mt-1 text-sm text-teal-700">+12.4% vs last week</p>
-            </article>
-            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <p class="text-sm text-muted">Orders</p>
-              <p class="mt-2 text-2xl font-semibold">312</p>
-              <p class="mt-1 text-sm text-teal-700">+8.1% vs last week</p>
-            </article>
-            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <p class="text-sm text-muted">Active customers</p>
-              <p class="mt-2 text-2xl font-semibold">1,284</p>
-              <p class="mt-1 text-sm text-amber-700">-1.2% vs last week</p>
-            </article>
-            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <p class="text-sm text-muted">Fulfillment rate</p>
-              <p class="mt-2 text-2xl font-semibold">96.8%</p>
-              <p class="mt-1 text-sm text-teal-700">On target</p>
-            </article>
-          </section>
+      const metricCard = (title, value, compare, accent, glyph) => `
+        <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div class="flex items-start justify-between">
+            <p class="text-sm text-slate-500 dark:text-slate-400">${title}</p>
+            <span class="rounded-lg ${accent} p-2 text-white">${glyph}</span>
+          </div>
+          <p class="mt-3 text-3xl font-semibold tracking-tight">${value}</p>
+          <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">${compare}</p>
+        </article>`;
 
-          <section class="grid gap-6 xl:grid-cols-[2fr_1fr]">
-            <article class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-              <div class="border-b border-slate-200 px-5 py-4">
-                <h2 class="font-semibold">Recent orders</h2>
-              </div>
-              <div class="overflow-x-auto">
-                <table class="min-w-full text-left text-sm">
-                  <thead class="bg-slate-50 text-muted">
-                    <tr>
-                      <th class="px-5 py-3 font-medium">Order</th>
-                      <th class="px-5 py-3 font-medium">Customer</th>
-                      <th class="px-5 py-3 font-medium">Status</th>
-                      <th class="px-5 py-3 font-medium">Total</th>
-                    </tr>
-                  </thead>
-                  <tbody class="divide-y divide-slate-100">
-                    <tr>
-                      <td class="px-5 py-3 font-medium">#1042</td>
-                      <td class="px-5 py-3">Maya Patel</td>
-                      <td class="px-5 py-3"><span class="rounded-full bg-teal-50 px-2.5 py-1 text-xs font-medium text-teal-800">Shipped</span></td>
-                      <td class="px-5 py-3">$214.00</td>
-                    </tr>
-                    <tr>
-                      <td class="px-5 py-3 font-medium">#1041</td>
-                      <td class="px-5 py-3">Luis Romero</td>
-                      <td class="px-5 py-3"><span class="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-800">Pending</span></td>
-                      <td class="px-5 py-3">$89.50</td>
-                    </tr>
-                    <tr>
-                      <td class="px-5 py-3 font-medium">#1040</td>
-                      <td class="px-5 py-3">Elena Rossi</td>
-                      <td class="px-5 py-3"><span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">Delivered</span></td>
-                      <td class="px-5 py-3">$432.10</td>
-                    </tr>
-                    <tr>
-                      <td class="px-5 py-3 font-medium">#1039</td>
-                      <td class="px-5 py-3">Jordan Lee</td>
-                      <td class="px-5 py-3"><span class="rounded-full bg-teal-50 px-2.5 py-1 text-xs font-medium text-teal-800">Shipped</span></td>
-                      <td class="px-5 py-3">$156.75</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </article>
-
-            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 class="font-semibold">Team notes</h2>
-              <ul class="mt-4 space-y-4 text-sm">
-                <li class="rounded-xl bg-slate-50 p-4">
-                  <p class="font-medium">Warehouse A is at 82% capacity</p>
-                  <p class="mt-1 text-muted">Consider moving overflow SKUs tomorrow morning.</p>
-                </li>
-                <li class="rounded-xl bg-slate-50 p-4">
-                  <p class="font-medium">3 orders waiting on payment</p>
-                  <p class="mt-1 text-muted">Follow up with billing before 5pm.</p>
-                </li>
-                <li class="rounded-xl bg-slate-50 p-4">
-                  <p class="font-medium">New supplier catalog uploaded</p>
-                  <p class="mt-1 text-muted">Review pricing before Friday’s report.</p>
-                </li>
+      const renderDashboard = () => `
+        <section class="space-y-6" aria-labelledby="dashboard-heading">
+          <h2 id="dashboard-heading" class="sr-only">Dashboard</h2>
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            ${metricCard("Monthly revenue", "$48,290", "+12.4% vs last month", "bg-blue-600", icon("contracts"))}
+            ${metricCard("Discount losses", "$3,180", "+6.2% coupon leakage", "bg-amber-500", icon("skills"))}
+            ${metricCard("Active agents", "3", "4 rented, 1 paused", "bg-emerald-600", icon("agents"))}
+            ${metricCard("Failing agents", "1", "Atlas Research needs review", "bg-rose-600", icon("errors"))}
+          </div>
+          <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <h3 class="font-semibold">Weekly activity</h3>
+            <p class="sr-only">Agent runs rise through Friday and fall on the weekend. Errors stay low except a midweek bump.</p>
+            <div class="mt-6 flex h-40 items-end gap-3 sm:gap-6" role="img" aria-label="Bar chart of agent runs Monday through Sunday">
+              ${[
+                ["Mon", "h-14", "h-6"],
+                ["Tue", "h-20", "h-5"],
+                ["Wed", "h-24", "h-8"],
+                ["Thu", "h-28", "h-5"],
+                ["Fri", "h-32", "h-4"],
+                ["Sat", "h-16", "h-3"],
+                ["Sun", "h-12", "h-2"],
+              ]
+                .map(
+                  ([day, run, err]) => `
+                <div class="flex flex-1 flex-col items-center gap-2">
+                  <div class="flex h-36 w-full items-end justify-center gap-1">
+                    <div class="w-3 rounded-t bg-blue-700 sm:w-4 ${run}" title="Agent runs"></div>
+                    <div class="w-3 rounded-t bg-rose-400 sm:w-4 ${err}" title="Errors"></div>
+                  </div>
+                  <span class="text-xs text-slate-500">${day}</span>
+                </div>`
+                )
+                .join("")}
+            </div>
+            <ul class="mt-4 flex gap-6 text-sm text-slate-600 dark:text-slate-300">
+              <li class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-blue-700"></span>Agent runs</li>
+              <li class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-rose-400"></span>Errors</li>
+            </ul>
+          </article>
+          <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <h3 class="font-semibold">Recent activity</h3>
+              <ul class="mt-4 space-y-3 text-sm">
+                <li class="rounded-xl bg-slate-50 p-3 dark:bg-slate-800">Atlas Research failed a source ingest at 09:14.</li>
+                <li class="rounded-xl bg-slate-50 p-3 dark:bg-slate-800">Nora Finance posted $3,280 against CNT-2041.</li>
+                <li class="rounded-xl bg-slate-50 p-3 dark:bg-slate-800">Harbor Freight trial for Calendar Concierge started Jul 12.</li>
               </ul>
             </article>
-          </section>
-        </main>
-      </div>
-    </div>
+            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <h3 class="font-semibold">Platform health</h3>
+              <dl class="mt-4 grid grid-cols-2 gap-3 text-sm">
+                <div class="rounded-xl bg-emerald-50 p-3 dark:bg-emerald-950"><dt class="text-emerald-800 dark:text-emerald-200">API uptime</dt><dd class="mt-1 text-lg font-semibold">99.92%</dd></div>
+                <div class="rounded-xl bg-amber-50 p-3 dark:bg-amber-950"><dt class="text-amber-800 dark:text-amber-200">Open errors</dt><dd class="mt-1 text-lg font-semibold">${state.errors.filter((e) => e.state === "Open").length}</dd></div>
+                <div class="rounded-xl bg-blue-50 p-3 dark:bg-blue-950"><dt class="text-blue-800 dark:text-blue-200">Active contracts</dt><dd class="mt-1 text-lg font-semibold">${state.contracts.filter((c) => c.status === "Active").length}</dd></div>
+                <div class="rounded-xl bg-rose-50 p-3 dark:bg-rose-950"><dt class="text-rose-800 dark:text-rose-200">Failing agents</dt><dd class="mt-1 text-lg font-semibold">1</dd></div>
+              </dl>
+            </article>
+          </div>
+        </section>`;
+
+      const renderUsers = () => {
+        const total = state.users.length;
+        const active = state.users.filter((u) => u.status === "Active").length;
+        const trial = state.users.filter((u) => u.status === "Trial").length;
+        return `
+        <section class="space-y-4" aria-labelledby="users-heading">
+          <div class="flex flex-wrap gap-3 text-sm">
+            <p class="rounded-xl border border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900"><span class="text-slate-500">Total</span> <strong class="ml-2">${total}</strong></p>
+            <p class="rounded-xl border border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900"><span class="text-slate-500">Active</span> <strong class="ml-2">${active}</strong></p>
+            <p class="rounded-xl border border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900"><span class="text-slate-500">Trial</span> <strong class="ml-2">${trial}</strong></p>
+          </div>
+          <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <table class="min-w-full text-left text-sm">
+              <caption class="sr-only">Customer accounts</caption>
+              <thead class="bg-slate-50 text-slate-500 dark:bg-slate-800 dark:text-slate-300">
+                <tr>
+                  <th class="px-4 py-3 font-medium" scope="col">Name</th>
+                  <th class="px-4 py-3 font-medium" scope="col">Email</th>
+                  <th class="px-4 py-3 font-medium" scope="col">Plan</th>
+                  <th class="px-4 py-3 font-medium" scope="col">Status</th>
+                  <th class="px-4 py-3 font-medium" scope="col">Joined</th>
+                  <th class="px-4 py-3 font-medium" scope="col">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                ${state.users
+                  .map(
+                    (u) => `
+                  <tr>
+                    <th class="px-4 py-3 font-medium" scope="row">
+                      <div class="flex items-center gap-3">
+                        <span class="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-blue-800 dark:bg-blue-950 dark:text-blue-200">${initials(u.name)}</span>
+                        <span>${escapeHtml(u.name)}<span class="block text-xs font-normal text-slate-500">${escapeHtml(u.company)}</span></span>
+                      </div>
+                    </th>
+                    <td class="px-4 py-3">${escapeHtml(u.email)}</td>
+                    <td class="px-4 py-3">${badge(u.plan)}</td>
+                    <td class="px-4 py-3">${badge(u.status)}</td>
+                    <td class="px-4 py-3 whitespace-nowrap">${escapeHtml(u.joined)}</td>
+                    <td class="px-4 py-3">${actionMenu("user-" + u.id, { aria: "Actions for " + u.name, entries: [{ label: "View detail", action: "user-detail", id: u.id }, { label: "Delete", action: "user-delete", id: u.id, danger: true }] })}</td>
+                  </tr>`
+                  )
+                  .join("")}
+              </tbody>
+            </table>
+          </div>
+        </section>`;
+      };
+
+      const renderAgents = () => `
+        <section class="grid grid-cols-1 gap-4 lg:grid-cols-2" aria-labelledby="agents-heading">
+          <h2 id="agents-heading" class="sr-only">Agent management</h2>
+          ${state.agents
+            .map(
+              (a) => `
+            <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex items-center gap-3">
+                  <span class="flex h-11 w-11 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-900 dark:bg-blue-950 dark:text-blue-100">${initials(a.name)}</span>
+                  <div>
+                    <h3 class="font-semibold">${escapeHtml(a.name)}</h3>
+                    <p class="text-sm text-slate-500">${escapeHtml(a.owner)} · Last run ${escapeHtml(a.lastRun)}</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  ${badge(a.status)}
+                  ${actionMenu("agent-" + a.id, { aria: "Actions for " + a.name, entries: [{ label: "Configure", action: "agent-configure", id: a.id }, { label: "Delete", action: "agent-delete", id: a.id, danger: true }] })}
+                </div>
+              </div>
+              <button type="button" class="mt-4 flex items-center gap-2 text-sm font-medium text-blue-700 dark:text-blue-300" data-action="toggle-skills" data-id="${a.id}" aria-expanded="${a.open}">
+                <span class="transition-transform ${a.open ? "rotate-180" : ""}">${icon("chevron")}</span>
+                ${a.open ? "Hide skills" : a.skills.length === 1 ? "Show 1 skill" : "Show " + a.skills.length + " skills"}
+              </button>
+              <div class="overflow-hidden transition-all duration-300 ${a.open ? "max-h-40 opacity-100" : "max-h-0 opacity-0"}">
+                <ul class="mt-3 flex flex-wrap gap-2">
+                  ${a.skills.map((s) => `<li class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-200">${escapeHtml(s)}</li>`).join("")}
+                </ul>
+              </div>
+            </article>`
+            )
+            .join("")}
+        </section>`;
+
+      const usageBar = (pct) => {
+        const steps = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+        const filled = steps.filter((s) => s <= pct).length;
+        return `<div class="mt-3 flex h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800" aria-label="Usage ${pct} percent">
+          ${steps.map((_, i) => `<span class="h-2 flex-1 ${i < filled ? "bg-blue-600" : ""}"></span>`).join("")}
+        </div><p class="mt-1 text-xs text-slate-500">${pct}% of platform runs this week</p>`;
+      };
+
+      const renderSkills = () => `
+        <section class="space-y-4" aria-labelledby="skills-heading">
+          <aside class="rounded-2xl border border-blue-100 bg-blue-50 p-4 text-sm text-blue-900 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-100">
+            A skill is a reusable capability that can be enabled on one or more rented AI agents. Catalog changes apply the next time an agent starts a run.
+          </aside>
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+            ${state.skills
+              .map(
+                (s) => `
+              <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div class="flex items-start justify-between">
+                  <div>
+                    <h3 class="font-semibold">${escapeHtml(s.name)}</h3>
+                    <p class="mt-1 text-sm text-slate-500">${escapeHtml(s.description)}</p>
+                  </div>
+                  ${actionMenu("skill-" + s.id, { aria: "Actions for " + s.name, entries: [{ label: "View detail", action: "skill-detail", id: s.id }, { label: "Delete", action: "skill-delete", id: s.id, danger: true }] })}
+                </div>
+                <div class="mt-3 flex flex-wrap items-center gap-2">${badge(s.category)}<span class="text-xs text-slate-500">${s.agents.length} enabled agent${s.agents.length === 1 ? "" : "s"}</span></div>
+                ${usageBar(s.usage)}
+              </article>`
+              )
+              .join("")}
+          </div>
+        </section>`;
+
+      const renderContracts = () => `
+        <section aria-labelledby="contracts-heading">
+          <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <table class="min-w-full text-left text-sm">
+              <caption class="sr-only">Rental contracts</caption>
+              <thead class="bg-slate-50 text-slate-500 dark:bg-slate-800 dark:text-slate-300">
+                <tr>
+                  <th class="px-4 py-3 font-medium" scope="col">Contract / client</th>
+                  <th class="px-4 py-3 font-medium" scope="col">Agent</th>
+                  <th class="px-4 py-3 font-medium" scope="col">Skills</th>
+                  <th class="px-4 py-3 font-medium" scope="col">Term</th>
+                  <th class="px-4 py-3 font-medium" scope="col">Status</th>
+                  <th class="px-4 py-3 font-medium text-right" scope="col">Amount paid</th>
+                  <th class="px-4 py-3 font-medium" scope="col">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                ${state.contracts
+                  .map(
+                    (c) => `
+                  <tr>
+                    <th class="px-4 py-3 font-medium whitespace-nowrap" scope="row">${escapeHtml(c.id)}<span class="block text-xs font-normal text-slate-500">${escapeHtml(c.client)}</span></th>
+                    <td class="px-4 py-3 whitespace-nowrap">${escapeHtml(c.agent)}</td>
+                    <td class="px-4 py-3"><div class="flex flex-wrap gap-1">${c.skills.map((s) => `<span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs dark:bg-slate-800">${escapeHtml(s)}</span>`).join("")}</div></td>
+                    <td class="px-4 py-3 whitespace-nowrap">${escapeHtml(c.start)} – ${escapeHtml(c.end)}</td>
+                    <td class="px-4 py-3">${badge(c.status)}</td>
+                    <td class="px-4 py-3 text-right font-medium whitespace-nowrap">${fmt(c.paid)}</td>
+                    <td class="px-4 py-3">${actionMenu("contract-" + c.id, { aria: "Actions for " + c.id, entries: [{ label: "View detail", action: "contract-detail", id: c.id }] })}</td>
+                  </tr>`
+                  )
+                  .join("")}
+              </tbody>
+            </table>
+          </div>
+        </section>`;
+
+      const renderErrors = () => `
+        <section aria-labelledby="errors-heading">
+          <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <table class="min-w-full text-left text-sm">
+              <caption class="sr-only">Agent execution errors</caption>
+              <thead class="bg-slate-50 text-slate-500 dark:bg-slate-800 dark:text-slate-300">
+                <tr>
+                  <th class="px-4 py-3 font-medium" scope="col">Timestamp</th>
+                  <th class="px-4 py-3 font-medium" scope="col">Agent</th>
+                  <th class="px-4 py-3 font-medium" scope="col">Type</th>
+                  <th class="px-4 py-3 font-medium" scope="col">Description</th>
+                  <th class="px-4 py-3 font-medium" scope="col">State</th>
+                  <th class="px-4 py-3 font-medium" scope="col">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                ${state.errors
+                  .map(
+                    (e) => `
+                  <tr class="${e.state === "Resolved" ? "bg-slate-50 text-slate-500 dark:bg-slate-950 dark:text-slate-400" : ""}">
+                    <th class="px-4 py-3 font-medium whitespace-nowrap" scope="row">${escapeHtml(e.time)}</th>
+                    <td class="px-4 py-3 whitespace-nowrap">${escapeHtml(e.agent)}</td>
+                    <td class="px-4 py-3">${badge(e.type)}</td>
+                    <td class="px-4 py-3">${escapeHtml(e.description)}</td>
+                    <td class="px-4 py-3">${badge(e.state)}</td>
+                    <td class="px-4 py-3">${actionMenu("error-" + e.id, { aria: "Actions for " + e.id, entries: [{ label: "View detail", action: "error-detail", id: e.id }, { label: "Mark as resolved", action: "error-resolve", id: e.id, disabled: e.state === "Resolved" }] })}</td>
+                  </tr>`
+                  )
+                  .join("")}
+              </tbody>
+            </table>
+          </div>
+        </section>`;
+
+      const modalMarkup = () => {
+        const m = state.modal;
+        if (!m) return "";
+        let title = "";
+        let body = "";
+        let footer = "";
+        if (m.type === "user") {
+          title = m.user.name;
+          body = `<dl class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+            <div><dt class="text-slate-500">Email</dt><dd>${escapeHtml(m.user.email)}</dd></div>
+            <div><dt class="text-slate-500">Company</dt><dd>${escapeHtml(m.user.company)}</dd></div>
+            <div><dt class="text-slate-500">Plan</dt><dd>${badge(m.user.plan)}</dd></div>
+            <div><dt class="text-slate-500">Status</dt><dd>${badge(m.user.status)}</dd></div>
+            <div><dt class="text-slate-500">Joined</dt><dd>${escapeHtml(m.user.joined)}</dd></div>
+            <div><dt class="text-slate-500">Rented agents</dt><dd>${escapeHtml(m.user.agents)}</dd></div>
+          </dl>`;
+        }
+        if (m.type === "configure") {
+          title = "Configure " + m.agent.name;
+          body = `<label class="block text-sm font-medium" for="system-prompt">System prompt</label>
+            <textarea id="system-prompt" class="mt-2 h-40 w-full rounded-xl border border-slate-300 bg-white p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950" data-action="prompt-input">${escapeHtml(state.promptDraft)}</textarea>`;
+          footer = `<button type="button" class="rounded-lg px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800" data-action="modal-close">Cancel</button>
+            <button type="button" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700" data-action="save-prompt" data-id="${m.agent.id}">Save changes</button>`;
+        }
+        if (m.type === "skill") {
+          title = m.skill.name;
+          body = `<dl class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+            <div class="sm:col-span-2"><dt class="text-slate-500">Description</dt><dd>${escapeHtml(m.skill.description)}</dd></div>
+            <div><dt class="text-slate-500">Category</dt><dd>${badge(m.skill.category)}</dd></div>
+            <div><dt class="text-slate-500">Permission scope</dt><dd>${escapeHtml(m.skill.scope)}</dd></div>
+            <div><dt class="text-slate-500">Version</dt><dd>${escapeHtml(m.skill.version)}</dd></div>
+            <div><dt class="text-slate-500">Last updated</dt><dd>${escapeHtml(m.skill.updated)}</dd></div>
+            <div class="sm:col-span-2"><dt class="text-slate-500">Enabled agents</dt><dd>${escapeHtml(m.skill.agents.join(", "))}</dd></div>
+          </dl>`;
+        }
+        if (m.type === "contract") {
+          const c = m.contract;
+          const skillTotal = c.items.reduce((sum, item) => sum + item.price, 0);
+          const computed = c.base + skillTotal - c.discount;
+          title = c.id;
+          body = `<dl class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+            <div><dt class="text-slate-500">Client</dt><dd>${escapeHtml(c.client)}</dd></div>
+            <div><dt class="text-slate-500">Agent</dt><dd>${escapeHtml(c.agent)}</dd></div>
+            <div><dt class="text-slate-500">Term</dt><dd>${escapeHtml(c.start)} – ${escapeHtml(c.end)}</dd></div>
+            <div><dt class="text-slate-500">Status</dt><dd>${badge(c.status)}</dd></div>
+          </dl>
+          <table class="mt-4 w-full text-sm">
+            <caption class="sr-only">Itemized fees</caption>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+              <tr><th class="py-2 text-left font-medium" scope="row">Base rental</th><td class="py-2 text-right">${fmt(c.base)}</td></tr>
+              ${c.items.map((item) => `<tr><th class="py-2 text-left font-medium" scope="row">${escapeHtml(item.name)}</th><td class="py-2 text-right">${fmt(item.price)}</td></tr>`).join("")}
+              <tr><th class="py-2 text-left font-medium" scope="row">Discount</th><td class="py-2 text-right">−${fmt(c.discount)}</td></tr>
+              <tr><th class="py-2 text-left font-semibold" scope="row">Total paid</th><td class="py-2 text-right font-semibold">${fmt(c.paid)}</td></tr>
+            </tbody>
+          </table>
+          <p class="sr-only">Computed total ${fmt(computed)} matches amount paid.</p>`;
+        }
+        if (m.type === "error") {
+          const e = m.error;
+          title = e.id.toUpperCase();
+          body = `<dl class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+            <div><dt class="text-slate-500">Agent</dt><dd>${escapeHtml(e.agent)}</dd></div>
+            <div><dt class="text-slate-500">Timestamp</dt><dd>${escapeHtml(e.time)}</dd></div>
+            <div><dt class="text-slate-500">Severity</dt><dd>${badge(e.type)}</dd></div>
+            <div><dt class="text-slate-500">State</dt><dd>${badge(e.state)}</dd></div>
+            <div class="sm:col-span-2"><dt class="text-slate-500">Request / context</dt><dd>${escapeHtml(e.context)}</dd></div>
+          </dl>
+          <pre class="mt-4 overflow-x-auto rounded-xl bg-slate-950 p-4 text-xs text-slate-100">${escapeHtml(e.trace)}</pre>`;
+        }
+        return `
+          <div class="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/50 p-4" data-action="backdrop">
+            <div role="dialog" aria-modal="true" aria-labelledby="dialog-title" tabindex="-1" data-dialog-panel class="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-xl focus:outline-none dark:bg-slate-900">
+              <div class="flex items-start justify-between gap-3">
+                <h2 id="dialog-title" class="text-lg font-semibold">${escapeHtml(title)}</h2>
+                <button type="button" class="rounded-lg p-2 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:hover:bg-slate-800" data-action="modal-close" aria-label="Close dialog">${icon("close")}</button>
+              </div>
+              <div class="mt-4">${body}</div>
+              ${footer ? `<div class="mt-6 flex justify-end gap-2">${footer}</div>` : ""}
+            </div>
+          </div>`;
+      };
+
+      const views = {
+        dashboard: renderDashboard,
+        users: renderUsers,
+        agents: renderAgents,
+        skills: renderSkills,
+        contracts: renderContracts,
+        errors: renderErrors,
+      };
+
+      const render = () => {
+        applyTheme();
+        const current = ROUTES.find((r) => r.id === state.section) || ROUTES[0];
+        document.getElementById("app").innerHTML = `
+          <div class="flex min-h-screen">
+            <aside class="hidden w-64 shrink-0 flex-col bg-slate-900 text-slate-100 md:flex">
+              <div class="flex items-center gap-3 px-5 py-6">
+                <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold">AH</span>
+                <div>
+                  <p class="font-semibold">AgentHub</p>
+                  <p class="text-xs text-slate-400">Agent rental admin</p>
+                </div>
+              </div>
+              <nav aria-label="Admin sections" class="flex-1 space-y-1 px-3">
+                ${ROUTES.map(
+                  (r) => `
+                  <a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm ${state.section === r.id ? "bg-blue-600 text-white" : "text-slate-300 hover:bg-slate-800"}" href="${r.hash}" data-nav="${r.id}">
+                    ${icon(r.id)}
+                    ${r.label}
+                  </a>`
+                ).join("")}
+              </nav>
+              <p class="px-5 py-4 text-xs text-slate-400">Signed in as Jordan Hale</p>
+            </aside>
+            <div class="flex min-w-0 flex-1 flex-col">
+              <header class="flex flex-col gap-3 border-b border-slate-200 bg-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between dark:border-slate-800 dark:bg-slate-900">
+                <div>
+                  <h1 class="text-lg font-semibold">${current.label}</h1>
+                  <nav class="mt-2 flex gap-2 overflow-x-auto text-sm md:hidden" aria-label="Admin sections">
+                    ${ROUTES.map((r) => `<a class="whitespace-nowrap rounded-lg px-3 py-1 ${state.section === r.id ? "bg-blue-600 text-white" : "bg-slate-100 dark:bg-slate-800"}" href="${r.hash}" data-nav="${r.id}">${r.label}</a>`).join("")}
+                  </nav>
+                </div>
+                <div class="flex items-center gap-3">
+                  <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">Production</span>
+                  <button type="button" class="rounded-lg border border-slate-200 p-2 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-700 dark:hover:bg-slate-800" data-action="theme" aria-label="${state.theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}">
+                    ${state.theme === "dark" ? icon("sun") : icon("moon")}
+                  </button>
+                </div>
+              </header>
+              <main id="main" class="flex-1 p-4 sm:p-6 lg:p-8">${views[state.section]()}</main>
+            </div>
+          </div>
+          ${modalMarkup()}
+          <div class="pointer-events-none fixed bottom-4 right-4 z-50 space-y-2" aria-live="polite">
+            ${state.toasts.map((t) => `<p class="pointer-events-auto rounded-lg bg-slate-900 px-4 py-2 text-sm text-white shadow-lg dark:bg-slate-100 dark:text-slate-900">${escapeHtml(t.message)}</p>`).join("")}
+          </div>`;
+      };
+
+      const byId = (list, id) => list.find((item) => item.id === id);
+
+      document.addEventListener("click", (event) => {
+        const nav = event.target.closest("[data-nav]");
+        if (nav) {
+          event.preventDefault();
+          setSection(nav.getAttribute("data-nav"));
+          return;
+        }
+        const backdrop = event.target.closest("[data-action='backdrop']");
+        if (backdrop && event.target === backdrop) {
+          closeModal();
+          return;
+        }
+        const control = event.target.closest("[data-action]");
+        if (!control) {
+          if (state.menu) {
+            closeMenu();
+            render();
+          }
+          return;
+        }
+        const action = control.getAttribute("data-action");
+        const id = control.getAttribute("data-id");
+        if (action === "menu") {
+          event.stopPropagation();
+          toggleMenu(id);
+          return;
+        }
+        if (action === "theme") {
+          state.theme = state.theme === "dark" ? "light" : "dark";
+          render();
+          return;
+        }
+        if (action === "modal-close") {
+          closeModal();
+          return;
+        }
+        if (action === "user-detail") openModal({ type: "user", user: byId(state.users, id) });
+        if (action === "user-delete") {
+          state.users = state.users.filter((u) => u.id !== id);
+          closeMenu();
+          toast("User removed for this session");
+        }
+        if (action === "toggle-skills") {
+          const agent = byId(state.agents, id);
+          agent.open = !agent.open;
+          render();
+        }
+        if (action === "agent-configure") openModal({ type: "configure", agent: byId(state.agents, id) });
+        if (action === "agent-delete") {
+          state.agents = state.agents.filter((a) => a.id !== id);
+          closeMenu();
+          toast("Agent removed for this session");
+        }
+        if (action === "skill-detail") openModal({ type: "skill", skill: byId(state.skills, id) });
+        if (action === "skill-delete") {
+          state.skills = state.skills.filter((s) => s.id !== id);
+          closeMenu();
+          toast("Skill removed for this session");
+        }
+        if (action === "contract-detail") openModal({ type: "contract", contract: byId(state.contracts, id) });
+        if (action === "error-detail") openModal({ type: "error", error: byId(state.errors, id) });
+        if (action === "error-resolve") {
+          const err = byId(state.errors, id);
+          if (err && err.state !== "Resolved") {
+            err.state = "Resolved";
+            closeMenu();
+            toast("Marked as resolved");
+          }
+        }
+        if (action === "save-prompt") {
+          const agent = byId(state.agents, id);
+          agent.prompt = state.promptDraft;
+          closeModal();
+          toast("System prompt saved");
+        }
+      });
+
+      document.addEventListener("input", (event) => {
+        if (event.target.id === "system-prompt") state.promptDraft = event.target.value;
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape" && state.modal) closeModal();
+      });
+
+      window.addEventListener("hashchange", () => {
+        state.section = sectionFromHash();
+        render();
+      });
+
+      state.section = sectionFromHash();
+      applyTheme();
+      render();
+    </script>
   </body>
 </html>
