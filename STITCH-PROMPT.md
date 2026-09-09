@@ -1,8 +1,8 @@
-# Google Stitch prompt (from SPECS.md)
+# Google Stitch prompt (from specs.md)
 
-Paste this into [Google Stitch](https://stitch.withgoogle.com). Generated screens are **design guidance only**. Do not ship Stitch HTML. The final prototype must match `SPECS.md`.
+Paste this into [Google Stitch](https://stitch.withgoogle.com). Generated screens are **design guidance only**. Do not ship Stitch HTML. The final prototype must match `specs.md`.
 
-Stitch’s public landing page was opened for this project; generation requires a signed-in Google account. Until a Stitch export is attached, use this prompt plus section 3.4 of `SPECS.md` as the visual proposal: navy sidebar, slate canvas, blue primary actions, rounded cards, semantic badges.
+Stitch’s public landing page was opened for this project; generation requires a signed-in Google account. Until a Stitch export is attached, use this prompt plus section 3.4 of `specs.md` as the visual proposal: navy sidebar, slate canvas, blue primary actions, rounded cards, semantic badges.
 
 ---
 
@@ -12,7 +12,7 @@ Desktop **AgentHub** internal admin for an AI agent rental marketplace. Persona:
 
 **Top bar:** current section title, compact Production environment chip, light/dark theme toggle.
 
-**Dashboard:** four metric cards in a 4-column desktop / 2-column tablet grid — Monthly revenue $48,290, Discount losses $3,180, Active agents 3, Failing agents 1 — each with icon, comparison text, and a distinct accent. Full-width Weekly Activity seven-day bar chart with legend and text summary. Below: Recent Activity list beside Platform Health.
+**Dashboard:** four metric cards in a responsive 2×2 grid — Monthly revenue $48,290, Discount losses $3,180, Active agents 3, Failing agents 1 — each with icon, label, hardcoded value, distinct accent, and subtle shadow. Below: full-width dashed-border placeholder labeled “Weekly activity chart”. Then Recent Activity list beside Platform Health.
 
 **Users:** summary counts plus a table (avatar/name, email, plan badge, status badge, join date, ⋮ actions). Five customers including Jordan Hale / Acme Labs and Priya Shah / Northstar Inc.
 

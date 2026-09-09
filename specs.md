@@ -12,35 +12,30 @@ This file is the source of truth for the prototype. An implementer should be abl
 
 ---
 
-## 1. Product description
+## 1. Short description
 
-AgentHub is a SaaS marketplace where companies rent pre-configured AI agents and equip them with skills such as web research, document analysis, and calendar management.
+**What AgentHub is.** AgentHub is a SaaS marketplace where companies rent pre-configured AI agents (support, research, scheduling, and similar roles) and equip those agents with reusable skills such as web research, document analysis, and calendar management.
 
-This prototype is the **internal admin panel** used by AgentHub operations staff to:
+**What this panel is.** This document specifies the **internal admin panel**: a single-page operations console for monitoring platform health, managing customers and rented agents, maintaining the skill catalog, inspecting rental contracts, and investigating execution errors.
 
-- monitor platform health and rental revenue
-- manage customer accounts
-- manage rented agents and their system prompts
-- maintain the skill catalog
-- inspect rental contracts and itemized pricing
-- investigate execution errors
+**Who the admin user is.** The only persona is an AgentHub operations administrator. Display name **Jordan Hale**, role **Operations** (Super Admin). There is no login screen, no other roles, and no permission switching. The shell shows this user as already signed in, with environment **Production**.
 
-The prototype is a reviewable frontend reference only. It uses realistic hardcoded data and does not connect to a backend.
-
-**Signed-in operator (display only, no login screen):** Jordan Hale, Operations. Environment: Production.
+The prototype is a reviewable frontend reference only. Data is hardcoded. Refresh restores seed data except the theme preference.
 
 ---
 
-## 2. Technology and constraints
+## 2. Tech stack and constraints
 
-| Allowed | Not allowed |
-|---------|-------------|
-| A single `index.html` file | Extra app HTML pages |
-| Semantic HTML (`header`, `nav`, `main`, `section`, `table`, `dialog` or equivalent) | React, Vue, Svelte, Alpine.js, jQuery |
-| Tailwind CSS via official CDN script | Custom CSS files, `<style>` blocks, inline `style` attributes |
-| Vanilla JavaScript inside `index.html` | Package managers, bundlers, UI component libraries |
-| Hardcoded / in-memory mock data | REST APIs, databases, real auth, billing processors |
-| Google Fonts for Inter (optional) | Charts.js, Chart.css, or any chart library that needs inline `--size` styles |
+| Use | Do not use |
+|-----|------------|
+| **HTML** — one `index.html` at the repo root, with semantic elements (`header`, `nav`, `main`, `section`, `table`, and a dialog or equivalent) | Extra app HTML pages |
+| **Tailwind CSS via CDN** — official Tailwind CDN script in `<head>` | Custom CSS files, `<style>` blocks, inline `style` attributes, CSS build pipelines |
+| **Vanilla JavaScript only** — interactivity in a `<script>` inside `index.html` | Frameworks (React, Vue, Svelte, Alpine.js), jQuery, npm, bundlers, UI component libraries |
+| **No backend** — hardcoded / in-memory mock data only | REST APIs, databases, real auth, billing processors, server-side business logic |
+
+`python3 server.py` (or any static file server) may serve the files. It must not implement application logic.
+
+Optional: Inter via Google Fonts.
 
 **Viewport:** Desktop and tablet first. Wide tables sit in a horizontal overflow wrapper. Mobile stacking is welcome but not the primary target.
 
@@ -96,82 +91,61 @@ Stitch may propose a different palette. If it conflicts with this section, **thi
 
 ## 4. Section specifications
 
+Each section below has **at least three specifications**. A spec names a **component**, describes its **contents**, and defines its **behavior**.
+
 ### 4.1 Dashboard (`#dashboard`)
 
-1. Four metric cards: **Monthly revenue**, **Discount losses**, **Active agents**, **Failing agents**. Every card includes an icon, label, hardcoded value, contextual comparison text, and a distinct accent color.
-2. Layout: four-column grid on desktop, two-column grid on tablet. Cards use a subtle border and shadow and remain legible in both themes.
-3. Full-width **Weekly Activity** panel under the cards: a hardcoded seven-day bar visualization (Mon–Sun), a legend, and an accessible text summary. Bars must be sized with Tailwind height utilities, not inline styles.
-4. Below the chart: **Recent Activity** list beside a **Platform Health** summary so the first view communicates both business activity and operational status.
-
-**Dashboard seed values**
-
-| Metric | Value | Comparison | Accent |
-|--------|-------|------------|--------|
-| Monthly revenue | $48,290 | +12.4% vs last month | Blue |
-| Discount losses | $3,180 | +6.2% coupon leakage | Amber |
-| Active agents | 3 | 4 rented, 1 paused | Emerald |
-| Failing agents | 1 | Atlas Research needs review | Rose |
-
-Weekly activity (relative bar heights): Mon 40%, Tue 55%, Wed 62%, Thu 78%, Fri 90%, Sat 48%, Sun 35%. Legend: Agent runs (navy/blue) vs Errors (rose).
+1. **Metric card grid.** Four metric cards in a responsive **2×2** grid (two columns from the `sm` breakpoint). Each card contains an icon, a label, and a hardcoded value: Monthly revenue `$48,290`, Discount losses `$3,180`, Active agents `3`, Failing agents `1`. The grid does not wrap to a single column on tablet/desktop.
+2. **Metric card chrome.** Cards use a distinct accent color per metric type (blue revenue, amber discounts, emerald active, rose failing), a 1px border, rounded corners, and a subtle shadow. Comparison text under the value is static. Cards stay readable in light and dark themes.
+3. **Weekly activity placeholder.** Below the cards, a full-width placeholder `div` with a dashed border and a centered label (`Weekly activity chart`) represents the chart. Inside that frame, seven hardcoded bars (Mon–Sun) using Tailwind height utilities, a legend (Agent runs vs Errors), and an `sr-only` text summary may be shown; no chart library and no inline `style` attributes.
+4. **Recent activity and platform health.** Two equal cards sit under the placeholder: a list of three hardcoded activity sentences, and a four-stat health summary (API uptime, open errors, active contracts, failing agents). They stack on small widths and sit side by side from `lg`.
 
 ### 4.2 User Management (`#users`)
 
-1. Section summary: total users, active users, trial users.
-2. Responsive table with **at least five** users and columns: name/avatar, email, plan, status, join date, actions.
-3. Plan and account state render as compact semantic badges.
-4. Every row has a `⋮` action button whose menu contains **View detail** and **Delete**. Only one action menu can be open. Selecting the trigger again or clicking outside closes it.
-5. **View detail** opens a modal with the complete user record: contact details, billing plan, company, account state, join date, and currently rented agents.
-6. **Delete** removes the row from the in-memory list, shows a toast, and is not persisted across refresh.
+1. **Summary chips.** Three compact chips above the table show Total, Active, and Trial counts derived from the user list (seed: 5 / 3 / 1). Counts update if a user is deleted in-session.
+2. **Users table.** A horizontally scrollable table with at least five rows and columns for avatar+name+company, email, plan badge, status badge, join date, and actions. Plan and status use the shared Badge component.
+3. **Row action dropdown.** Each row’s `⋮` button opens a menu with **View detail** and **Delete**. Only one menu is open at a time; a second trigger click or an outside click closes it.
+4. **User detail modal / delete.** **View detail** opens a modal with email, company, plan, status, join date, and rented agents. **Delete** removes the row in memory, shows a toast, and does not persist across refresh.
 
 ### 4.3 Agent Management (`#agents`)
 
-1. At least **four** agent cards: name, avatar initials, owner company, status badge, last-run information, and a collapsed associated-skill list.
-2. Skill lists are hidden by default. A labeled expand control reveals skills by transitioning maximum height, opacity, and chevron orientation; selecting it again collapses the content.
-3. Shared identities (required): **Nora Finance**, **Atlas Research**, **Calendar Concierge**, and **DealDesk Copilot** also appear where relevant in contracts and errors.
-4. Each agent has a `⋮` menu with **Configure** and **Delete**.
-5. **Configure** opens a modal containing the agent’s editable system prompt in a labeled `textarea`, plus **Cancel** and **Save changes**. Save updates in-memory data and shows a toast.
+1. **Agent card.** At least four cards (Nora Finance, Atlas Research, Calendar Concierge, DealDesk Copilot). Contents: initials avatar, name, owner company, last-run text, and a status badge (Active / Failing / Paused). Cards sit in a one-column layout that becomes two columns from `lg`.
+2. **Collapsible skill list.** Each card includes a labeled control (`Show N skills` / `Hide skills`). The skill chips start collapsed (`max-height` 0, opacity 0). Expanding animates max-height, opacity, and chevron rotation; collapsing reverses the same animation.
+3. **Configure modal.** The card `⋮` menu offers **Configure** and **Delete**. **Configure** opens a modal whose body is a labeled `textarea` of the agent’s system prompt, with **Cancel** and **Save changes**. Save writes in-memory data and shows a toast. **Delete** removes the card for the session.
 
 ### 4.4 Skills (`#skills`)
 
-1. An explanatory callout: a skill is a reusable capability that can be enabled on one or more rented AI agents.
-2. At least **four** skill cards: icon, name, short description, category badge, enabled-agent count, and a hardcoded usage indicator (for example a small bar or percentage).
-3. Each skill has a `⋮` menu with **View detail** and **Delete**.
-4. **View detail** opens a modal with description, category, permission scope, enabled agents, version, and last updated date.
+1. **Definition callout.** A full-width callout at the top of the section states that a skill is a reusable capability that can be enabled on one or more rented AI agents. It is informational only (not dismissible).
+2. **Skill card.** At least four cards (Web Research, Document Analysis, Calendar Management, Invoice Matching). Contents: name, short description, category badge, enabled-agent count, and a hardcoded usage bar plus percentage. Layout is one column, two columns from `md`.
+3. **Skill actions.** Each card’s `⋮` menu contains **View detail** and **Delete**. **View detail** opens a modal with description, category, permission scope, enabled agents, version, and last updated date. **Delete** removes the card in-session and shows a toast.
 
 ### 4.5 Agent Contracts (`#contracts`)
 
-1. Table with at least **four** active or completed rental contracts. Columns: contract identifier/client, agent, contracted skills, term dates, status, amount paid, actions.
-2. Skills appear as compact chips. Dates use a consistent human-readable format (for example `Mar 1, 2026`). Currency values align for comparison.
-3. Each row has a `⋮` menu containing **View detail**.
-4. The modal shows client, agent, term, status, base rental fee, itemized skill names and individual prices, discount if applicable, and total paid.
-5. Contract totals and skill names must agree with the associated itemized modal breakdown.
+1. **Contracts table.** A horizontally scrollable table with at least four rows. Columns: contract id + client, agent name, skill chips, human-readable term dates (`Mar 1, 2026`), status badge, right-aligned amount paid, and actions.
+2. **Skill chips and money.** Contracted skills render as compact chips (not a comma string). Currency uses a consistent USD format and stays right-aligned so amounts can be compared down the column.
+3. **Itemized detail modal.** Each row’s `⋮` menu contains **View detail**. The modal lists client, agent, term, status, base rental, each skill name with its price, discount, and total paid. The total must equal base + skill prices − discount and must match the table’s amount paid.
 
 ### 4.6 Error Log (`#errors`)
 
-1. At least **six** hardcoded error entries: timestamp, agent name, severity/type badge, short description, resolution state, actions.
-2. Distinct badges for **Critical**, **Integration**, **Timeout**, **Permission**, and **Validation**. Resolved entries are visually muted without losing readability.
-3. Each row has a `⋮` menu with **View detail** and **Mark as resolved**. Resolving updates the row badge and disables the resolve action for the current browser session (in-memory only).
-4. **View detail** opens a modal with error identifier, agent, timestamp, severity, request/context summary, and a readable full trace block.
+1. **Errors table.** At least six hardcoded rows with timestamp, agent name, type badge, short description, resolution state, and actions. Type badges are visually distinct for Critical, Integration, Timeout, Permission, and Validation.
+2. **Resolved appearance.** Rows already Resolved (or marked resolved in-session) use muted background and text without dropping contrast below readable. The resolution state badge switches to Resolved immediately after the action.
+3. **Error actions.** Each row’s `⋮` menu contains **View detail** and **Mark as resolved**. **View detail** opens a modal with id, agent, timestamp, severity, request/context, and a `<pre>` trace. **Mark as resolved** updates the row without a reload and disables that action for the rest of the session.
 
 ---
 
 ## 5. Component inventory
 
+Reusable UI components shared across sections. Implement each once and reuse it. Every entry names the component, describes its contents, and defines its behavior.
+
 | Component | Contents | Behavior |
 |-----------|----------|----------|
-| Application shell | Sidebar, top bar, main viewport | Persistent across all six sections |
-| Sidebar nav item | Icon, label, active indicator | Hash routing; one active item |
-| Metric card | Icon tile, label, value, comparison | Distinct accent; dashboard grid |
-| Status badge | Pill text | Semantic colors reused everywhere |
-| Action dropdown | `⋮` trigger + menu | One open at a time; outside click closes |
-| Modal dialog | Backdrop, title, body, close, optional footer | Close via close button, backdrop, Escape |
-| Collapsible skill list | Expand button, animated region, chips | Starts collapsed |
-| Data table | Overflow wrapper, header, rows, actions | Tablet/desktop; horizontal scroll if needed |
-| Theme toggle | Labeled icon button | Applies `dark` class and stores preference |
-| Toast | Transient message | Save, delete, and resolve feedback |
-| Weekly bars | Seven labeled bars + legend | Tailwind heights only |
-
-Implement each interactive pattern once and reuse it.
+| **Sidebar** | AgentHub `AH` mark, product name, and six nav items (icon + label): Dashboard, User Management, Agent Management, Skills, Agent Contracts, Error Log | Persistent on every view. Selecting an item reveals that section without a page reload, updates the URL hash, and applies a visible active state to exactly one item. |
+| **Metric card** | Icon, label, and a hardcoded value (optional comparison text) | Rendered in the Dashboard 2×2 grid. Distinct accent color per metric type, 1px border, rounded corners, subtle shadow. Display only; not clickable. |
+| **Action dropdown** | `⋮` trigger `button` and a menu of `button` items (View detail, Configure, Delete, Mark as resolved as required by the section) | One menu open at a time. Trigger click toggles the menu. Clicking outside or clicking the trigger again closes it. |
+| **Modal** | Backdrop, title, dynamic body, close control, optional footer actions | Opens from View detail or Configure. Closes from the close button, backdrop click, and Escape. Focus moves into the dialog when opened. |
+| **Badge** | Short pill text (plan, status, category, error type, resolution state) | Shared semantic colors: Active / success emerald; Trial / Paused amber; Failing / Suspended / Critical rose; Completed / Resolved muted slate. |
+| **Collapsible skill list** | Expand/collapse `button` with chevron, plus skill name chips | Hidden by default on Agent Management cards. Expanding animates max-height, opacity, and chevron rotation; collapsing reverses the same animation. |
+| **Dark mode toggle** | Icon `button` in the top bar with an accessible name (for example “Switch to dark theme”) | Toggles the `dark` class on `html` and `body` using Tailwind `dark:` utilities. Persists `light` or `dark` in `localStorage` key `agenthub-theme`. Preference survives section changes. |
 
 ---
 
@@ -305,7 +279,7 @@ Updates the error’s resolution state immediately, mutes the row, and disables 
 
 ## 9. Acceptance criteria
 
-1. Repository history shows `SPECS.md` committed before AgentHub `index.html` changes.
+1. Repository history shows `specs.md` committed before AgentHub `index.html` changes.
 2. All six sections are reachable from the persistent sidebar and exactly one navigation item has an active indicator.
 3. Dashboard displays four complete metric cards and a full-width weekly activity visualization.
 4. User Management contains at least five users with working action menus.
