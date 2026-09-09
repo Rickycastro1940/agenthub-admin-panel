@@ -20,6 +20,12 @@
         },
       };
     </script>
+    <script>
+      if (localStorage.getItem("agenthub-theme") === "dark") {
+        document.documentElement.classList.add("dark");
+        document.addEventListener("DOMContentLoaded", () => document.body.classList.add("dark"));
+      }
+    </script>
   </head>
   <body class="min-h-screen bg-slate-100 font-sans text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100">
     <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:m-4 focus:rounded-lg focus:bg-white focus:px-4 focus:py-2 focus:shadow dark:focus:bg-slate-800">Skip to content</a>
@@ -126,10 +132,10 @@
           Open: "bg-blue-50 text-blue-800 dark:bg-blue-950 dark:text-blue-200",
           Resolved: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300",
           Critical: "bg-rose-600 text-white",
-          Integration: "bg-indigo-50 text-indigo-800 dark:bg-indigo-950 dark:text-indigo-200",
+          Integration: "bg-indigo-600 text-white",
           Timeout: "bg-amber-500 text-white",
-          Permission: "bg-fuchsia-50 text-fuchsia-800 dark:bg-fuchsia-950 dark:text-fuchsia-200",
-          Validation: "bg-sky-50 text-sky-800 dark:bg-sky-950 dark:text-sky-200",
+          Permission: "bg-fuchsia-600 text-white",
+          Validation: "bg-sky-600 text-white",
           Growth: "bg-blue-50 text-blue-800 dark:bg-blue-950 dark:text-blue-200",
           Scale: "bg-violet-50 text-violet-800 dark:bg-violet-950 dark:text-violet-200",
           Starter: "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200",
@@ -194,7 +200,7 @@
       };
 
       const actionMenu = (id, items) => `
-        <div class="relative">
+        <div class="relative" data-menu-root>
           <button type="button" class="rounded-lg p-2 text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:hover:bg-slate-800" aria-haspopup="menu" aria-expanded="${state.menu === id}" aria-label="${escapeHtml(items.aria)}" data-action="menu" data-id="${id}">
             ${icon("more")}
           </button>
@@ -212,54 +218,26 @@
           }
         </div>`;
 
-      const metricCard = (title, value, compare, accent, glyph) => `
+      const metricCard = (title, value, accent, glyph) => `
         <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-          <div class="flex items-start justify-between">
-            <p class="text-sm text-slate-500 dark:text-slate-400">${title}</p>
+          <div class="flex items-start justify-between gap-3">
             <span class="rounded-lg ${accent} p-2 text-white">${glyph}</span>
           </div>
-          <p class="mt-3 text-3xl font-semibold tracking-tight">${value}</p>
-          <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">${compare}</p>
+          <p class="mt-4 text-sm font-medium text-slate-500 dark:text-slate-400">${title}</p>
+          <p class="mt-1 text-3xl font-semibold tracking-tight">${value}</p>
         </article>`;
 
       const renderDashboard = () => `
         <section class="space-y-6" aria-labelledby="dashboard-heading">
           <h2 id="dashboard-heading" class="sr-only">Dashboard</h2>
           <div class="grid grid-cols-2 gap-4">
-            ${metricCard("Monthly revenue", "$48,290", "+12.4% vs last month", "bg-blue-600", icon("contracts"))}
-            ${metricCard("Discount losses", "$3,180", "+6.2% coupon leakage", "bg-amber-500", icon("skills"))}
-            ${metricCard("Active agents", "3", "4 rented, 1 paused", "bg-emerald-600", icon("agents"))}
-            ${metricCard("Failing agents", "1", "Atlas Research needs review", "bg-rose-600", icon("errors"))}
+            ${metricCard("Total revenue", "$48,290", "bg-blue-600", icon("contracts"))}
+            ${metricCard("Discount losses", "$3,180", "bg-amber-500", icon("skills"))}
+            ${metricCard("Active agents", "3", "bg-emerald-600", icon("agents"))}
+            ${metricCard("Failing agents", "1", "bg-rose-600", icon("errors"))}
           </div>
-          <div class="rounded-2xl border border-dashed border-slate-300 bg-white p-5 dark:border-slate-600 dark:bg-slate-900">
+          <div class="flex min-h-64 w-full items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-white dark:border-slate-600 dark:bg-slate-900">
             <p class="text-center text-sm font-medium text-slate-500 dark:text-slate-400">Weekly activity chart</p>
-            <p class="sr-only">Agent runs rise through Friday and fall on the weekend. Errors stay low except a midweek bump.</p>
-            <div class="mt-6 flex h-40 items-end gap-3 sm:gap-6" role="img" aria-label="Bar chart of agent runs Monday through Sunday">
-              ${[
-                ["Mon", "h-14", "h-6"],
-                ["Tue", "h-20", "h-5"],
-                ["Wed", "h-24", "h-8"],
-                ["Thu", "h-28", "h-5"],
-                ["Fri", "h-32", "h-4"],
-                ["Sat", "h-16", "h-3"],
-                ["Sun", "h-12", "h-2"],
-              ]
-                .map(
-                  ([day, run, err]) => `
-                <div class="flex flex-1 flex-col items-center gap-2">
-                  <div class="flex h-36 w-full items-end justify-center gap-1">
-                    <div class="w-3 rounded-t bg-blue-700 sm:w-4 ${run}" title="Agent runs"></div>
-                    <div class="w-3 rounded-t bg-rose-400 sm:w-4 ${err}" title="Errors"></div>
-                  </div>
-                  <span class="text-xs text-slate-500">${day}</span>
-                </div>`
-                )
-                .join("")}
-            </div>
-            <ul class="mt-4 flex gap-6 text-sm text-slate-600 dark:text-slate-300">
-              <li class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-blue-700"></span>Agent runs</li>
-              <li class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-rose-400"></span>Errors</li>
-            </ul>
           </div>
           <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
@@ -283,26 +261,18 @@
         </section>`;
 
       const renderUsers = () => {
-        const total = state.users.length;
-        const active = state.users.filter((u) => u.status === "Active").length;
-        const trial = state.users.filter((u) => u.status === "Trial").length;
         return `
         <section class="space-y-4" aria-labelledby="users-heading">
-          <div class="flex flex-wrap gap-3 text-sm">
-            <p class="rounded-xl border border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900"><span class="text-slate-500">Total</span> <strong class="ml-2">${total}</strong></p>
-            <p class="rounded-xl border border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900"><span class="text-slate-500">Active</span> <strong class="ml-2">${active}</strong></p>
-            <p class="rounded-xl border border-slate-200 bg-white px-4 py-3 dark:border-slate-800 dark:bg-slate-900"><span class="text-slate-500">Trial</span> <strong class="ml-2">${trial}</strong></p>
-          </div>
+          <h2 id="users-heading" class="sr-only">User management</h2>
           <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <table class="min-w-full text-left text-sm">
-              <caption class="sr-only">Customer accounts</caption>
+              <caption class="sr-only">Hardcoded user accounts</caption>
               <thead class="bg-slate-50 text-slate-500 dark:bg-slate-800 dark:text-slate-300">
                 <tr>
                   <th class="px-4 py-3 font-medium" scope="col">Name</th>
                   <th class="px-4 py-3 font-medium" scope="col">Email</th>
                   <th class="px-4 py-3 font-medium" scope="col">Plan</th>
                   <th class="px-4 py-3 font-medium" scope="col">Status</th>
-                  <th class="px-4 py-3 font-medium" scope="col">Joined</th>
                   <th class="px-4 py-3 font-medium" scope="col">Actions</th>
                 </tr>
               </thead>
@@ -311,16 +281,10 @@
                   .map(
                     (u) => `
                   <tr>
-                    <th class="px-4 py-3 font-medium" scope="row">
-                      <div class="flex items-center gap-3">
-                        <span class="flex h-9 w-9 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-blue-800 dark:bg-blue-950 dark:text-blue-200">${initials(u.name)}</span>
-                        <span>${escapeHtml(u.name)}<span class="block text-xs font-normal text-slate-500">${escapeHtml(u.company)}</span></span>
-                      </div>
-                    </th>
+                    <th class="px-4 py-3 font-medium" scope="row">${escapeHtml(u.name)}</th>
                     <td class="px-4 py-3">${escapeHtml(u.email)}</td>
                     <td class="px-4 py-3">${badge(u.plan)}</td>
                     <td class="px-4 py-3">${badge(u.status)}</td>
-                    <td class="px-4 py-3 whitespace-nowrap">${escapeHtml(u.joined)}</td>
                     <td class="px-4 py-3">${actionMenu("user-" + u.id, { aria: "Actions for " + u.name, entries: [{ label: "View detail", action: "user-detail", id: u.id }, { label: "Delete", action: "user-delete", id: u.id, danger: true }] })}</td>
                   </tr>`
                   )
@@ -332,66 +296,66 @@
       };
 
       const renderAgents = () => `
-        <section class="grid grid-cols-1 gap-4 lg:grid-cols-2" aria-labelledby="agents-heading">
+        <section class="space-y-4" aria-labelledby="agents-heading">
           <h2 id="agents-heading" class="sr-only">Agent management</h2>
+          <ul class="grid grid-cols-1 gap-4 lg:grid-cols-2">
           ${state.agents
             .map(
               (a) => `
+            <li>
             <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <div class="flex items-start justify-between gap-3">
-                <div class="flex items-center gap-3">
-                  <span class="flex h-11 w-11 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-900 dark:bg-blue-950 dark:text-blue-100">${initials(a.name)}</span>
-                  <div>
-                    <h3 class="font-semibold">${escapeHtml(a.name)}</h3>
-                    <p class="text-sm text-slate-500">${escapeHtml(a.owner)} · Last run ${escapeHtml(a.lastRun)}</p>
-                  </div>
+                <div>
+                  <p class="text-xs font-medium uppercase tracking-wide text-slate-500">Name</p>
+                  <h3 class="mt-1 text-lg font-semibold">${escapeHtml(a.name)}</h3>
+                  <p class="mt-3 text-xs font-medium uppercase tracking-wide text-slate-500">Owner</p>
+                  <p class="mt-1 text-sm text-slate-700 dark:text-slate-300">${escapeHtml(a.owner)}</p>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex flex-col items-end gap-2">
+                  <p class="text-xs font-medium uppercase tracking-wide text-slate-500">Status</p>
                   ${badge(a.status)}
                   ${actionMenu("agent-" + a.id, { aria: "Actions for " + a.name, entries: [{ label: "Configure", action: "agent-configure", id: a.id }, { label: "Delete", action: "agent-delete", id: a.id, danger: true }] })}
                 </div>
               </div>
-              <button type="button" class="mt-4 flex items-center gap-2 text-sm font-medium text-blue-700 dark:text-blue-300" data-action="toggle-skills" data-id="${a.id}" aria-expanded="${a.open}">
-                <span class="transition-transform ${a.open ? "rotate-180" : ""}">${icon("chevron")}</span>
-                ${a.open ? "Hide skills" : a.skills.length === 1 ? "Show 1 skill" : "Show " + a.skills.length + " skills"}
+              <button type="button" class="mt-4 flex items-center gap-2 text-sm font-medium text-blue-700 dark:text-blue-300" data-action="toggle-skills" data-id="${a.id}" aria-expanded="${a.open}" aria-controls="skills-${a.id}">
+                <span data-chevron class="inline-flex transition-transform duration-500 ease-in-out ${a.open ? "rotate-180" : ""}">${icon("chevron")}</span>
+                <span data-toggle-label>${a.open ? "Hide skill list" : "Show skill list"}</span>
               </button>
-              <div class="overflow-hidden transition-all duration-300 ${a.open ? "max-h-40 opacity-100" : "max-h-0 opacity-0"}">
+              <div id="skills-${a.id}" class="overflow-hidden transition-[max-height,opacity] duration-500 ease-in-out ${a.open ? "max-h-96 opacity-100" : "max-h-0 opacity-0"}">
                 <ul class="mt-3 flex flex-wrap gap-2">
                   ${a.skills.map((s) => `<li class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-200">${escapeHtml(s)}</li>`).join("")}
                 </ul>
               </div>
-            </article>`
+            </article>
+            </li>`
             )
             .join("")}
+          </ul>
         </section>`;
-
-      const usageBar = (pct) => {
-        const steps = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
-        const filled = steps.filter((s) => s <= pct).length;
-        return `<div class="mt-3 flex h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800" aria-label="Usage ${pct} percent">
-          ${steps.map((_, i) => `<span class="h-2 flex-1 ${i < filled ? "bg-blue-600" : ""}"></span>`).join("")}
-        </div><p class="mt-1 text-xs text-slate-500">${pct}% of platform runs this week</p>`;
-      };
 
       const renderSkills = () => `
         <section class="space-y-4" aria-labelledby="skills-heading">
-          <aside class="rounded-2xl border border-blue-100 bg-blue-50 p-4 text-sm text-blue-900 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-100">
-            A skill is a reusable capability that can be enabled on one or more rented AI agents. Catalog changes apply the next time an agent starts a run.
+          <h2 id="skills-heading" class="sr-only">Skills catalog</h2>
+          <aside class="rounded-2xl border border-blue-100 bg-blue-50 p-5 text-sm leading-relaxed text-blue-950 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-100">
+            <h3 class="text-base font-semibold">What is a skill in AgentHub?</h3>
+            <p class="mt-2">A skill is a reusable capability that AgentHub attaches to a rented AI agent. It is not a separate bot. It is a packaged permission set plus a tool (for example fetching the public web, reading PDFs, writing calendar events, or matching invoices) that the agent may call during a run.</p>
+            <p class="mt-2">Operations staff enable a skill on one or more agents from this catalog. The same skill can serve many customers; each enablement counts toward the number shown on the card. Removing a skill from the catalog does not delete historical runs, but new runs will not load it.</p>
+            <p class="mt-2">Counts below match Agent Management: if Nora Finance, Atlas Research, and DealDesk Copilot all have Document Analysis, that skill shows three enabled agents.</p>
           </aside>
           <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
             ${state.skills
               .map(
                 (s) => `
               <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                <div class="flex items-start justify-between">
+                <div class="flex items-start justify-between gap-3">
                   <div>
-                    <h3 class="font-semibold">${escapeHtml(s.name)}</h3>
-                    <p class="mt-1 text-sm text-slate-500">${escapeHtml(s.description)}</p>
+                    <h3 class="text-lg font-semibold">${escapeHtml(s.name)}</h3>
+                    <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">${escapeHtml(s.description)}</p>
                   </div>
                   ${actionMenu("skill-" + s.id, { aria: "Actions for " + s.name, entries: [{ label: "View detail", action: "skill-detail", id: s.id }, { label: "Delete", action: "skill-delete", id: s.id, danger: true }] })}
                 </div>
-                <div class="mt-3 flex flex-wrap items-center gap-2">${badge(s.category)}<span class="text-xs text-slate-500">${s.agents.length} enabled agent${s.agents.length === 1 ? "" : "s"}</span></div>
-                ${usageBar(s.usage)}
+                <p class="mt-4 text-sm font-medium text-slate-900 dark:text-slate-100">${s.agents.length} agent${s.agents.length === 1 ? "" : "s"} enabled</p>
+                <p class="mt-1 text-xs text-slate-500">${escapeHtml(s.agents.join(", "))}</p>
               </article>`
               )
               .join("")}
@@ -400,16 +364,17 @@
 
       const renderContracts = () => `
         <section aria-labelledby="contracts-heading">
+          <h2 id="contracts-heading" class="sr-only">Agent contracts</h2>
           <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <table class="min-w-full text-left text-sm">
               <caption class="sr-only">Rental contracts</caption>
               <thead class="bg-slate-50 text-slate-500 dark:bg-slate-800 dark:text-slate-300">
                 <tr>
-                  <th class="px-4 py-3 font-medium" scope="col">Contract / client</th>
+                  <th class="px-4 py-3 font-medium" scope="col">Client</th>
                   <th class="px-4 py-3 font-medium" scope="col">Agent</th>
-                  <th class="px-4 py-3 font-medium" scope="col">Skills</th>
-                  <th class="px-4 py-3 font-medium" scope="col">Term</th>
-                  <th class="px-4 py-3 font-medium" scope="col">Status</th>
+                  <th class="px-4 py-3 font-medium" scope="col">Contracted skills</th>
+                  <th class="px-4 py-3 font-medium" scope="col">Start</th>
+                  <th class="px-4 py-3 font-medium" scope="col">End</th>
                   <th class="px-4 py-3 font-medium text-right" scope="col">Amount paid</th>
                   <th class="px-4 py-3 font-medium" scope="col">Actions</th>
                 </tr>
@@ -419,11 +384,11 @@
                   .map(
                     (c) => `
                   <tr>
-                    <th class="px-4 py-3 font-medium whitespace-nowrap" scope="row">${escapeHtml(c.id)}<span class="block text-xs font-normal text-slate-500">${escapeHtml(c.client)}</span></th>
+                    <th class="px-4 py-3 font-medium whitespace-nowrap" scope="row">${escapeHtml(c.client)}</th>
                     <td class="px-4 py-3 whitespace-nowrap">${escapeHtml(c.agent)}</td>
                     <td class="px-4 py-3"><div class="flex flex-wrap gap-1">${c.skills.map((s) => `<span class="rounded-full bg-slate-100 px-2 py-0.5 text-xs dark:bg-slate-800">${escapeHtml(s)}</span>`).join("")}</div></td>
-                    <td class="px-4 py-3 whitespace-nowrap">${escapeHtml(c.start)} – ${escapeHtml(c.end)}</td>
-                    <td class="px-4 py-3">${badge(c.status)}</td>
+                    <td class="px-4 py-3 whitespace-nowrap">${escapeHtml(c.start)}</td>
+                    <td class="px-4 py-3 whitespace-nowrap">${escapeHtml(c.end)}</td>
                     <td class="px-4 py-3 text-right font-medium whitespace-nowrap">${fmt(c.paid)}</td>
                     <td class="px-4 py-3">${actionMenu("contract-" + c.id, { aria: "Actions for " + c.id, entries: [{ label: "View detail", action: "contract-detail", id: c.id }] })}</td>
                   </tr>`
@@ -436,14 +401,15 @@
 
       const renderErrors = () => `
         <section aria-labelledby="errors-heading">
+          <h2 id="errors-heading" class="sr-only">Error log</h2>
           <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <table class="min-w-full text-left text-sm">
-              <caption class="sr-only">Agent execution errors</caption>
+              <caption class="sr-only">Hardcoded agent execution errors</caption>
               <thead class="bg-slate-50 text-slate-500 dark:bg-slate-800 dark:text-slate-300">
                 <tr>
                   <th class="px-4 py-3 font-medium" scope="col">Timestamp</th>
                   <th class="px-4 py-3 font-medium" scope="col">Agent</th>
-                  <th class="px-4 py-3 font-medium" scope="col">Type</th>
+                  <th class="px-4 py-3 font-medium" scope="col">Error type</th>
                   <th class="px-4 py-3 font-medium" scope="col">Description</th>
                   <th class="px-4 py-3 font-medium" scope="col">State</th>
                   <th class="px-4 py-3 font-medium" scope="col">Actions</th>
@@ -475,20 +441,22 @@
         let body = "";
         let footer = "";
         if (m.type === "user") {
-          title = m.user.name;
+          title = "User detail";
           body = `<dl class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+            <div><dt class="text-slate-500">Name</dt><dd>${escapeHtml(m.user.name)}</dd></div>
             <div><dt class="text-slate-500">Email</dt><dd>${escapeHtml(m.user.email)}</dd></div>
             <div><dt class="text-slate-500">Company</dt><dd>${escapeHtml(m.user.company)}</dd></div>
             <div><dt class="text-slate-500">Plan</dt><dd>${badge(m.user.plan)}</dd></div>
             <div><dt class="text-slate-500">Status</dt><dd>${badge(m.user.status)}</dd></div>
             <div><dt class="text-slate-500">Joined</dt><dd>${escapeHtml(m.user.joined)}</dd></div>
-            <div><dt class="text-slate-500">Rented agents</dt><dd>${escapeHtml(m.user.agents)}</dd></div>
+            <div class="sm:col-span-2"><dt class="text-slate-500">Rented agents</dt><dd>${escapeHtml(m.user.agents)}</dd></div>
           </dl>`;
+          footer = `<button type="button" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white" data-action="modal-close">Close</button>`;
         }
         if (m.type === "configure") {
           title = "Configure " + m.agent.name;
           body = `<label class="block text-sm font-medium" for="system-prompt">System prompt</label>
-            <textarea id="system-prompt" class="mt-2 h-40 w-full rounded-xl border border-slate-300 bg-white p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950" data-action="prompt-input">${escapeHtml(state.promptDraft)}</textarea>`;
+            <textarea id="system-prompt" name="system-prompt" rows="10" class="mt-2 w-full rounded-xl border border-slate-300 bg-white p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950">${escapeHtml(state.promptDraft)}</textarea>`;
           footer = `<button type="button" class="rounded-lg px-4 py-2 text-sm text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800" data-action="modal-close">Cancel</button>
             <button type="button" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700" data-action="save-prompt" data-id="${m.agent.id}">Save changes</button>`;
         }
@@ -507,15 +475,24 @@
           const c = m.contract;
           const skillTotal = c.items.reduce((sum, item) => sum + item.price, 0);
           const computed = c.base + skillTotal - c.discount;
-          title = c.id;
+          title = "Contract breakdown · " + c.id;
           body = `<dl class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
             <div><dt class="text-slate-500">Client</dt><dd>${escapeHtml(c.client)}</dd></div>
             <div><dt class="text-slate-500">Agent</dt><dd>${escapeHtml(c.agent)}</dd></div>
-            <div><dt class="text-slate-500">Term</dt><dd>${escapeHtml(c.start)} – ${escapeHtml(c.end)}</dd></div>
+            <div><dt class="text-slate-500">Start</dt><dd>${escapeHtml(c.start)}</dd></div>
+            <div><dt class="text-slate-500">End</dt><dd>${escapeHtml(c.end)}</dd></div>
             <div><dt class="text-slate-500">Status</dt><dd>${badge(c.status)}</dd></div>
+            <div><dt class="text-slate-500">Amount paid</dt><dd>${fmt(c.paid)}</dd></div>
           </dl>
-          <table class="mt-4 w-full text-sm">
-            <caption class="sr-only">Itemized fees</caption>
+          <h3 class="mt-5 text-sm font-semibold">Itemized skills</h3>
+          <table class="mt-2 w-full text-sm">
+            <caption class="sr-only">Itemized skill prices</caption>
+            <thead>
+              <tr class="text-left text-slate-500">
+                <th class="py-2 font-medium" scope="col">Skill</th>
+                <th class="py-2 text-right font-medium" scope="col">Price</th>
+              </tr>
+            </thead>
             <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
               <tr><th class="py-2 text-left font-medium" scope="row">Base rental</th><td class="py-2 text-right">${fmt(c.base)}</td></tr>
               ${c.items.map((item) => `<tr><th class="py-2 text-left font-medium" scope="row">${escapeHtml(item.name)}</th><td class="py-2 text-right">${fmt(item.price)}</td></tr>`).join("")}
@@ -524,21 +501,24 @@
             </tbody>
           </table>
           <p class="sr-only">Computed total ${fmt(computed)} matches amount paid.</p>`;
+          footer = `<button type="button" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900" data-action="modal-close">Close</button>`;
         }
         if (m.type === "error") {
           const e = m.error;
-          title = e.id.toUpperCase();
+          title = "Error " + e.id.toUpperCase();
           body = `<dl class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
             <div><dt class="text-slate-500">Agent</dt><dd>${escapeHtml(e.agent)}</dd></div>
             <div><dt class="text-slate-500">Timestamp</dt><dd>${escapeHtml(e.time)}</dd></div>
-            <div><dt class="text-slate-500">Severity</dt><dd>${badge(e.type)}</dd></div>
+            <div><dt class="text-slate-500">Error type</dt><dd>${badge(e.type)}</dd></div>
             <div><dt class="text-slate-500">State</dt><dd>${badge(e.state)}</dd></div>
+            <div class="sm:col-span-2"><dt class="text-slate-500">Description</dt><dd>${escapeHtml(e.description)}</dd></div>
             <div class="sm:col-span-2"><dt class="text-slate-500">Request / context</dt><dd>${escapeHtml(e.context)}</dd></div>
           </dl>
           <pre class="mt-4 overflow-x-auto rounded-xl bg-slate-950 p-4 text-xs text-slate-100">${escapeHtml(e.trace)}</pre>`;
+          footer = `<button type="button" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900" data-action="modal-close">Close</button>`;
         }
         return `
-          <div class="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/50 p-4" data-action="backdrop">
+          <div class="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/50 p-4 dark:bg-slate-950/70" data-action="backdrop">
             <div role="dialog" aria-modal="true" aria-labelledby="dialog-title" tabindex="-1" data-dialog-panel class="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-xl focus:outline-none dark:bg-slate-900">
               <div class="flex items-start justify-between gap-3">
                 <h2 id="dialog-title" class="text-lg font-semibold">${escapeHtml(title)}</h2>
@@ -564,9 +544,9 @@
         const current = ROUTES.find((r) => r.id === state.section) || ROUTES[0];
         document.getElementById("app").innerHTML = `
           <div class="flex min-h-screen">
-            <aside class="hidden w-64 shrink-0 flex-col bg-slate-900 text-slate-100 md:flex">
+            <aside class="sticky top-0 flex min-h-screen w-56 shrink-0 flex-col border-r border-slate-800 bg-slate-900 text-slate-100 sm:w-64" aria-label="Primary">
               <div class="flex items-center gap-3 px-5 py-6">
-                <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold">AH</span>
+                <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600 text-sm font-bold text-white">AH</span>
                 <div>
                   <p class="font-semibold">AgentHub</p>
                   <p class="text-xs text-slate-400">Agent rental admin</p>
@@ -575,7 +555,11 @@
               <nav aria-label="Admin sections" class="flex-1 space-y-1 px-3">
                 ${ROUTES.map(
                   (r) => `
-                  <a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm ${state.section === r.id ? "bg-blue-600 text-white" : "text-slate-300 hover:bg-slate-800"}" href="${r.hash}" data-nav="${r.id}">
+                  <a class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm ${
+                    state.section === r.id
+                      ? "border-l-4 border-sky-300 bg-blue-600 text-white"
+                      : "border-l-4 border-transparent text-slate-300 hover:bg-slate-800"
+                  }" href="${r.hash}" data-nav="${r.id}" ${state.section === r.id ? 'aria-current="page"' : ""}>
                     ${icon(r.id)}
                     ${r.label}
                   </a>`
@@ -584,13 +568,8 @@
               <p class="px-5 py-4 text-xs text-slate-400">Signed in as Jordan Hale</p>
             </aside>
             <div class="flex min-w-0 flex-1 flex-col">
-              <header class="flex flex-col gap-3 border-b border-slate-200 bg-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between dark:border-slate-800 dark:bg-slate-900">
-                <div>
-                  <h1 class="text-lg font-semibold">${current.label}</h1>
-                  <nav class="mt-2 flex gap-2 overflow-x-auto text-sm md:hidden" aria-label="Admin sections">
-                    ${ROUTES.map((r) => `<a class="whitespace-nowrap rounded-lg px-3 py-1 ${state.section === r.id ? "bg-blue-600 text-white" : "bg-slate-100 dark:bg-slate-800"}" href="${r.hash}" data-nav="${r.id}">${r.label}</a>`).join("")}
-                  </nav>
-                </div>
+              <header class="flex items-center justify-between gap-3 border-b border-slate-200 bg-white px-4 py-4 dark:border-slate-800 dark:bg-slate-900">
+                <h1 class="text-lg font-semibold">${current.label}</h1>
                 <div class="flex items-center gap-3">
                   <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">Production</span>
                   <button type="button" class="rounded-lg border border-slate-200 p-2 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-700 dark:hover:bg-slate-800" data-action="theme" aria-label="${state.theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}">
@@ -621,22 +600,24 @@
           closeModal();
           return;
         }
+        const inMenu = event.target.closest("[data-menu-root]");
         const control = event.target.closest("[data-action]");
-        if (!control) {
-          if (state.menu) {
-            closeMenu();
+        if (state.menu && !inMenu) {
+          closeMenu();
+          if (!control) {
             render();
+            return;
           }
-          return;
         }
+        if (!control) return;
         const action = control.getAttribute("data-action");
         const id = control.getAttribute("data-id");
         if (action === "menu") {
-          event.stopPropagation();
           toggleMenu(id);
           return;
         }
         if (action === "theme") {
+          closeMenu();
           state.theme = state.theme === "dark" ? "light" : "dark";
           render();
           return;
@@ -653,8 +634,21 @@
         }
         if (action === "toggle-skills") {
           const agent = byId(state.agents, id);
+          if (!agent) return;
           agent.open = !agent.open;
-          render();
+          const panel = document.getElementById("skills-" + id);
+          const chevron = control.querySelector("[data-chevron]");
+          const label = control.querySelector("[data-toggle-label]");
+          control.setAttribute("aria-expanded", String(agent.open));
+          if (label) label.textContent = agent.open ? "Hide skill list" : "Show skill list";
+          if (chevron) chevron.classList.toggle("rotate-180", agent.open);
+          if (panel) {
+            panel.classList.toggle("max-h-0", !agent.open);
+            panel.classList.toggle("opacity-0", !agent.open);
+            panel.classList.toggle("max-h-96", agent.open);
+            panel.classList.toggle("opacity-100", agent.open);
+          }
+          return;
         }
         if (action === "agent-configure") openModal({ type: "configure", agent: byId(state.agents, id) });
         if (action === "agent-delete") {
@@ -691,11 +685,20 @@
       });
 
       document.addEventListener("keydown", (event) => {
-        if (event.key === "Escape" && state.modal) closeModal();
+        if (event.key !== "Escape") return;
+        if (state.modal) {
+          closeModal();
+          return;
+        }
+        if (state.menu) {
+          closeMenu();
+          render();
+        }
       });
 
       window.addEventListener("hashchange", () => {
         state.section = sectionFromHash();
+        closeMenu();
         render();
       });
 
