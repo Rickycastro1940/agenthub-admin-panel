@@ -225,14 +225,14 @@
       const renderDashboard = () => `
         <section class="space-y-6" aria-labelledby="dashboard-heading">
           <h2 id="dashboard-heading" class="sr-only">Dashboard</h2>
-          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div class="grid grid-cols-2 gap-4">
             ${metricCard("Monthly revenue", "$48,290", "+12.4% vs last month", "bg-blue-600", icon("contracts"))}
             ${metricCard("Discount losses", "$3,180", "+6.2% coupon leakage", "bg-amber-500", icon("skills"))}
             ${metricCard("Active agents", "3", "4 rented, 1 paused", "bg-emerald-600", icon("agents"))}
             ${metricCard("Failing agents", "1", "Atlas Research needs review", "bg-rose-600", icon("errors"))}
           </div>
-          <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <h3 class="font-semibold">Weekly activity</h3>
+          <div class="rounded-2xl border border-dashed border-slate-300 bg-white p-5 dark:border-slate-600 dark:bg-slate-900">
+            <p class="text-center text-sm font-medium text-slate-500 dark:text-slate-400">Weekly activity chart</p>
             <p class="sr-only">Agent runs rise through Friday and fall on the weekend. Errors stay low except a midweek bump.</p>
             <div class="mt-6 flex h-40 items-end gap-3 sm:gap-6" role="img" aria-label="Bar chart of agent runs Monday through Sunday">
               ${[
@@ -260,7 +260,7 @@
               <li class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-blue-700"></span>Agent runs</li>
               <li class="flex items-center gap-2"><span class="h-2 w-2 rounded-full bg-rose-400"></span>Errors</li>
             </ul>
-          </article>
+          </div>
           <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <h3 class="font-semibold">Recent activity</h3>
