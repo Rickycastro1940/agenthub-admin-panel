@@ -1,8 +1,8 @@
-# Google Stitch prompt (from specs.md)
+# Google Stitch prompt (from SPECS.md)
 
-Paste this into [Google Stitch](https://stitch.withgoogle.com). Generated screens are **design guidance only**. Do not ship Stitch HTML. The final prototype must match `specs.md`.
+Paste this into [Google Stitch](https://stitch.withgoogle.com). Generated screens are **design guidance only**, a starting point. Do not ship Stitch HTML. Adapt structure, components, and interactions so they match `SPECS.md` exactly.
 
-Stitch’s public landing page was opened for this project; generation requires a signed-in Google account. Until a Stitch export is attached, use this prompt plus section 3.4 of `specs.md` as the visual proposal: navy sidebar, slate canvas, blue primary actions, rounded cards, semantic badges.
+Stitch’s public landing page was opened for this project; generation requires a signed-in Google account. Until a Stitch export is attached, use this prompt plus section 3.4 of `SPECS.md` as the visual proposal: navy sidebar, slate canvas, blue primary actions, rounded cards, semantic badges.
 
 ---
 

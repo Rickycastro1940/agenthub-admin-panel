@@ -1,12 +1,10 @@
 # AgentHub Admin Panel — Product Specification
 
-This file is the source of truth for the prototype. An implementer should be able to build the panel from this document alone.
+This file is the source of truth for the prototype. An implementer (including an AI coding agent) must be able to build the panel from this document alone, with **no follow-up questions**.
 
-**Process**
+**Git (checked in history):** Commit this file in a **separate commit before** any AgentHub `index.html` work. Do not mix the spec and HTML in the same commit.
 
-1. Commit this specification before any AgentHub `index.html` work.
-2. After this draft exists, paste `STITCH-PROMPT.md` into [Google Stitch](https://stitch.withgoogle.com) to generate an initial visual proposal.
-3. Treat Stitch output as look-and-feel reference only. Manually implement `index.html` so every requirement in this file is satisfied. Do not ship Stitch HTML.
+**Stitch:** Google Stitch’s visual proposal is **only a starting point**. Adapt structure, components, and interactions so they match **this file exactly**. Do not ship Stitch HTML.
 
 **Deliverable:** one `index.html` at the repository root, based on the [html-hello](https://github.com/4GeeksAcademy/html-hello) template. Serve with `python3 server.py` (Flask static server on port 3000) or any static file server.
 
@@ -279,7 +277,7 @@ Updates the error’s resolution state immediately, mutes the row, and disables 
 
 ## 9. Acceptance criteria
 
-1. Repository history shows `specs.md` committed before AgentHub `index.html` changes.
+1. Repository history shows `SPECS.md` committed before AgentHub `index.html` changes.
 2. All six sections are reachable from the persistent sidebar and exactly one navigation item has an active indicator.
 3. Dashboard displays four complete metric cards and a full-width weekly activity visualization.
 4. User Management contains at least five users with working action menus.
